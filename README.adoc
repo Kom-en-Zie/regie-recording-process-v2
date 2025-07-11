@@ -7,8 +7,6 @@
 
 This repository contains the scripts and configurations to set up an automated workflow for OBS recordings on Ubuntu 24.04 LTS. The system automatically detects new OBS `.mkv` recordings, converts them to `.mp4` (H.264) and `.mov` (H.265), moves them to a designated NAS (or simulated NAS) directory, verifies the transfer, and cleans up the original recording.
 
-'''
-
 [[features]]
 == Features
 
