@@ -1,6 +1,0 @@
-#!/bin/bash
-
-RECORD_DIR="/home"
-PROCESS_SCRIPT="/home"
-CONVERT_DIR="/home"
-NAS_DIR="/home"
