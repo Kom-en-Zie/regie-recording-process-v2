@@ -7,7 +7,7 @@
 
 This repository contains the scripts and configurations to set up an automated workflow for OBS recordings on Ubuntu 24.04 LTS. The system automatically detects new OBS `.mkv` recordings, converts them to `.mp4` (H.264) and `.mov` (H.265), moves them to a designated NAS (or simulated NAS) directory, verifies the transfer, and cleans up the original recording.
 
----
+'''
 
 [[features]]
 == Features
@@ -19,7 +19,6 @@ This repository contains the scripts and configurations to set up an automated w
 * **Cleanup:** Automatically removes the original `.mkv` file after successful conversion and transfer.
 * **Systemd Service:** Configured to run as a `systemd` service, ensuring the workflow starts automatically on boot and runs reliably in the background.
 
----
 
 [[prerequisites]]
 == Prerequisites
@@ -34,7 +33,6 @@ Before you begin, ensure you have `FFmpeg` and `inotify-tools` installed.
 sudo apt update && sudo apt install ffmpeg inotify-tools -y
 ----
 
----
 
 [[installation]]
 == Installation and Setup
@@ -158,7 +156,6 @@ sudo systemctl enable recording_workflow.service
 sudo systemctl start recording_workflow.service
 ----
 
----
 
 [[usage]]
 == Usage
@@ -170,7 +167,6 @@ Once the `systemd` service is enabled and started, the workflow will automatical
 * The converted files will then be moved to the `NAS_DIR`.
 * Upon successful transfer and verification, the original `.mkv` file will be deleted.
 
----
 
 [[monitoring-and-troubleshooting]]
 == Monitoring and Troubleshooting
@@ -189,7 +185,6 @@ To view the workflow logs and debug any issues, use `tail` to follow the `workfl
 tail -f ~/Documents/Kom\ \&\ Zie/Regie/Recording\ process/workflow.log
 ----
 
----
 
 [[scripts]]
 == Scripts
@@ -200,27 +195,10 @@ This repository includes the following scripts:
 
 This script handles the video conversion, file movement, verification, and cleanup. It is triggered by `start_listener.sh` when a new recording is detected.
 
-[source,bash]
-----
-include::process_video.sh[]
-----
-
 === `start_listener.sh`
 
 This script constantly monitors the `RECORD_DIR` for new `.mkv` files using `inotifywait`. When a new file is detected, it calls `process_video.sh` to begin the conversion workflow.
 
-[source,bash]
-----
-include::start_listener.sh[]
-----
-
 === `variables.sh.example`
 
 An example file for `variables.sh`, which you must copy and modify with your specific directory paths. This file centralizes all configurable paths for the scripts.
-
-[source,bash]
-----
-include::variables.sh.example[]
-----
-
----
