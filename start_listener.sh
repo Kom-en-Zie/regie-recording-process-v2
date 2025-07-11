@@ -8,7 +8,7 @@ echo "Starting listener on folder: $RECORD_DIR"
 # -m: monitor mode, keeps running forever
 # -e close_write: event that triggers when a file is finished being written
 # --format '%w%f': outputs the full path of the file
-inotifywait -m -e close_write --format '%w%f' "$RECORD_DIR" | while read FILE
+inotifywait -m -e close_write --format '%w%f' "$RECORD_DIR" | while read -r FILE
 do
     # Ensure we only process .mkv files
     if [[ "$FILE" == *.mkv ]]; then
