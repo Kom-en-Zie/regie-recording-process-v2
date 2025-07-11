@@ -10,7 +10,6 @@ set -e
 SOURCE_MKV="$1"
 
 # --- Logging ---
-LOG_FILE="/home/rens//Documents/Kom\ \&\ Zie/Regie/Recording\ process/workflow.log"
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
 }
