@@ -1,0 +1,226 @@
+= Automated OBS Recording Workflow
+:author: Your Name (replace with your name)
+:email: your.email@example.com (replace with your email)
+:revnumber: 1.0
+:revdate: 2025-07-11
+:experimental:
+
+This repository contains the scripts and configurations to set up an automated workflow for OBS recordings on Ubuntu 24.04 LTS. The system automatically detects new OBS `.mkv` recordings, converts them to `.mp4` (H.264) and `.mov` (H.265), moves them to a designated NAS (or simulated NAS) directory, verifies the transfer, and cleans up the original recording.
+
+---
+
+[[features]]
+== Features
+
+* **Automated Monitoring:** Watches a specified OBS output directory for new `.mkv` files using `inotify-tools`.
+* **Dual-Format Conversion:** Converts `.mkv` recordings to both H.264 (`.mp4`) and H.265 (`.mov`) formats using `FFmpeg`.
+* **NAS Integration:** Moves converted files to a specified NAS (or simulated local directory) for storage.
+* **Integrity Verification:** Checks for the presence of converted files on the NAS location before deleting originals.
+* **Cleanup:** Automatically removes the original `.mkv` file after successful conversion and transfer.
+* **Systemd Service:** Configured to run as a `systemd` service, ensuring the workflow starts automatically on boot and runs reliably in the background.
+
+---
+
+[[prerequisites]]
+== Prerequisites
+
+* Ubuntu 24.04 LTS
+* OBS Studio (or any recording software that outputs `.mkv` files to the specified `RECORD_DIR`)
+
+Before you begin, ensure you have `FFmpeg` and `inotify-tools` installed.
+
+[source,bash]
+----
+sudo apt update && sudo apt install ffmpeg inotify-tools -y
+----
+
+---
+
+[[installation]]
+== Installation and Setup
+
+Follow these steps to set up the automated workflow on your system.
+
+=== 1. Clone the Repository
+
+First, clone this repository to your desired location. For example, in your home directory's `Documents` folder:
+
+[source,bash]
+----
+mkdir -p ~/Documents/Kom\ \&\ Zie/Regie/Recording\ process/
+cd ~/Documents/Kom\ \&\ Zie/Regie/Recording\ process/
+git clone <repository_url> regie-recording-process-v2
+cd regie-recording-process-v2
+----
+(Replace `<repository_url>` with the actual URL of your Git repository.)
+
+=== 2. Create Directory Structure
+
+The workflow expects a specific directory structure for input, conversion, and output. Create these folders:
+
+[source,bash]
+----
+# These are examples
+mkdir -p "~/Videos/OBS-output"
+mkdir -p "~/Videos/Conversion folder"
+mkdir -p "~/Videos/NAS-simulated"
+----
+
+=== 3. Configure Environment Variables
+
+This project uses a `variables.sh` file to manage paths and other configuration settings.
+
+Copy the example file and then edit it with your specific paths:
+
+[source,bash]
+----
+cp variables.sh.example variables.sh
+nano variables.sh
+----
+
+**Edit `variables.sh`:**
+
+Replace the placeholder paths in `variables.sh` with your actual directory paths and username.
+
+[source,bash]
+----
+#!/bin/bash
+
+# Directory where OBS saves new MKV recordings
+RECORD_DIR="/home/your_user/Videos/OBS-output"
+
+# Full path to the 'process_video.sh' script
+PROCESS_SCRIPT="/home/your_user/Documents/regie-recording-process-v2/process_video.sh"
+
+# Temporary directory for video conversions
+CONVERT_DIR="/home/your_user/Videos/Conversion folder"
+
+# Destination directory for converted files (simulated NAS)
+NAS_DIR="/home/your_user/Videos/NAS-simulated"
+
+# Path for the workflow log file
+LOG_FILE="/home/your_user/Documents/workflow.log"
+----
+**Note:** `~` (tilde) is generally expanded by the shell, but it's safer to use the full `/home/your_user/` path in scripts that might be run by `systemd`.
+
+Save and exit `nano` (`Ctrl + X`, then `Y`, then `Enter`).
+
+=== 4. Make Scripts Executable
+
+Ensure both `process_video.sh` and `start_listener.sh` have executable permissions:
+
+[source,bash]
+----
+chmod +x process_video.sh
+chmod +x start_listener.sh
+----
+
+=== 5. Create and Enable the systemd Service
+
+To ensure the listener script runs automatically on system startup and restarts if it fails, we'll create a `systemd` service.
+
+Create the service file using `sudo`:
+
+[source,bash]
+----
+sudo nano /etc/systemd/system/recording_workflow.service
+----
+
+Paste the following configuration. **It is critical to replace `your_user` with your actual username.** The service needs to run as your user to have the correct permissions for accessing your home directory and files.
+
+[source,ini]
+----
+[Unit]
+Description=Starts the video recording workflow listener for OBS.
+After=network.target
+
+[Service]
+# IMPORTANT: Run the service as your user, not root
+User=your_user
+# The command to start the listener script (adjust path if your repo location differs)
+ExecStart=/home/your_user/Documents/regie-recording-process-v2/start_listener.sh
+# Restart the service if it ever fails
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+----
+
+Save and exit (`Ctrl + X`, `Y`, `Enter`).
+
+Now, reload `systemd` to recognize the new service, enable it to start on boot, and start it immediately:
+
+[source,bash]
+----
+sudo systemctl daemon-reload
+sudo systemctl enable recording_workflow.service
+sudo systemctl start recording_workflow.service
+----
+
+---
+
+[[usage]]
+== Usage
+
+Once the `systemd` service is enabled and started, the workflow will automatically begin monitoring your specified OBS recording folder (`RECORD_DIR`).
+
+* When a new `.mkv` file is detected (after OBS finishes writing it), `process_video.sh` will be triggered.
+* The script will convert the `.mkv` to `.mp4` and `.mov` in the `CONVERT_DIR`.
+* The converted files will then be moved to the `NAS_DIR`.
+* Upon successful transfer and verification, the original `.mkv` file will be deleted.
+
+---
+
+[[monitoring-and-troubleshooting]]
+== Monitoring and Troubleshooting
+
+You can check the status of the `systemd` service:
+
+[source,bash]
+----
+sudo systemctl status recording_workflow.service
+----
+
+To view the workflow logs and debug any issues, use `tail` to follow the `workflow.log` file:
+
+[source,bash]
+----
+tail -f ~/Documents/Kom\ \&\ Zie/Regie/Recording\ process/workflow.log
+----
+
+---
+
+[[scripts]]
+== Scripts
+
+This repository includes the following scripts:
+
+=== `process_video.sh`
+
+This script handles the video conversion, file movement, verification, and cleanup. It is triggered by `start_listener.sh` when a new recording is detected.
+
+[source,bash]
+----
+include::process_video.sh[]
+----
+
+=== `start_listener.sh`
+
+This script constantly monitors the `RECORD_DIR` for new `.mkv` files using `inotifywait`. When a new file is detected, it calls `process_video.sh` to begin the conversion workflow.
+
+[source,bash]
+----
+include::start_listener.sh[]
+----
+
+=== `variables.sh.example`
+
+An example file for `variables.sh`, which you must copy and modify with your specific directory paths. This file centralizes all configurable paths for the scripts.
+
+[source,bash]
+----
+include::variables.sh.example[]
+----
+
+---
