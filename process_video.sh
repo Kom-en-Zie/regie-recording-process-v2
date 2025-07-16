@@ -5,6 +5,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 source "$SCRIPT_DIR/variables.sh"
 source "$SCRIPT_DIR/functions.sh"
+source "$SCRIPT_DIR/data-handling/transcribe.sh"
 
 # Exit immediately if a command exits with a non-zero status.
 set -e
@@ -42,6 +43,10 @@ log "Starting MOV (H.265) conversion..."
 # -tag:v hvc1: Adds a tag for better compatibility with Apple devices
 ffmpeg -i "$SOURCE_MKV" -c:v libx265 -preset slow -crf 24 -c:a copy -tag:v hvc1 "$MOV_TARGET" -y
 log "MOV conversion finished."
+
+log "Starting transcription..."
+transcribeMkv "$SOURCE_MKV"
+log "Transcription finished."
 
 # 2. UPLOAD (Move to NAS) & VERIFY
 
