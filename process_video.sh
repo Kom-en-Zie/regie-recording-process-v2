@@ -4,6 +4,7 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 source "$SCRIPT_DIR/variables.sh"
+source "$SCRIPT_DIR/functions.sh"
 
 # Exit immediately if a command exits with a non-zero status.
 set -e
@@ -11,11 +12,6 @@ set -e
 # --- Configuration ---
 # The full path to the new MKV file passed from the listener
 SOURCE_MKV="$1"
-
-# --- Logging ---
-log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
-}
 
 # --- Main Logic ---
 log "----------------------------------------------------"
