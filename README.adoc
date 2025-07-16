@@ -31,6 +31,13 @@ Before you begin, ensure you have `FFmpeg` and `inotify-tools` installed.
 sudo apt update && sudo apt install ffmpeg inotify-tools -y
 ----
 
+You also need openai-whisper to be installed with pipx on root
+[source,bash]
+----
+sudo apt install pipx -y && sudo -i && pipx install openai-whisper
+----
+NOTE: Make sure that the `whisper` command is available for the root user
+
 
 [[installation]]
 == Installation and Setup
