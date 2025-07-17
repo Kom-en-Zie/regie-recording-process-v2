@@ -161,6 +161,38 @@ sudo systemctl enable recording_workflow.service
 sudo systemctl start recording_workflow.service
 ----
 
+It also is important to make sure that the `whisper` command is available to the service. If it is missing (the service gets an error), follow the below instructions to make it available.
+
+Check where whisper is located with:
+[source,bash]
+----
+which whisper
+# Example output: /home/[user]/.local/bin/whisper
+----
+You now need to edit the systemctl:
+[source,bash]
+----
+sudo systemctl edit recording_workflow.service
+----
+
+And add the environment variable declaration between the comments. Example:
+[source,ini]
+----
+### Anything between here and the comment below will become the contents of the drop-in file
+
+[Service]
+Environment="PATH=/home/[user]/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+### Edits below this comment will be discarded
+# The original file with its contents, but commented out.
+----
+After that, you can reload the `daemon` and restart the service
+[source,bash]
+----
+sudo systemctl daemon-reload
+sudo systemctl restart recording_workflow.service
+----
+
 
 [[usage]]
 == Usage
@@ -177,17 +209,21 @@ Once the `systemd` service is enabled and started, the workflow will automatical
 == Monitoring and Troubleshooting
 
 You can check the status of the `systemd` service:
-
 [source,bash]
 ----
 sudo systemctl status recording_workflow.service
 ----
+To get live updates from the service (terminal output):
+[source,bash]
+----
+journalctl -u recording_workflow.service -f
+----
 
 To view the workflow logs and debug any issues, use `tail` to follow the `workflow.log` file:
-
 [source,bash]
 ----
 tail -f ~/Documents/Kom\ \&\ Zie/Regie/Recording\ process/workflow.log
+# This will only show logs created by the workflow, not terminal errors.
 ----
 
 
